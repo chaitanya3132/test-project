@@ -1,0 +1,56 @@
+# Investment Research Assistant configuration
+
+email:
+  # Reports are emailed here. SMTP credentials come from environment
+  # variables / GitHub Actions secrets: SMTP_HOST, SMTP_PORT, SMTP_USER,
+  # SMTP_PASSWORD. If they are not set, reports are only written to reports/.
+  to: chaitu.sachin200@gmail.com
+  from_name: Investment Research Assistant
+
+universe:
+  # The screener scans the S&P 500 (fetched live, with an embedded fallback
+  # list) plus the ETFs below. Everything is filtered to major US exchanges
+  # (NYSE / Nasdaq / AMEX / Arca), which matches what Robinhood offers.
+  extra_etfs:
+    - SPY   # S&P 500
+    - VOO   # S&P 500 (Vanguard)
+    - QQQ   # Nasdaq 100
+    - VTI   # Total US market
+    - SCHD  # Dividend
+    - VUG   # Growth
+    - VTV   # Value
+    - IWM   # Russell 2000
+    - XLK   # Tech sector
+    - XLV   # Healthcare sector
+    - XLF   # Financials sector
+    - XLE   # Energy sector
+  # Liquidity floor: average daily dollar volume (USD)
+  min_dollar_volume: 5_000_000
+  # Minimum share price (filters illiquid penny-ish names)
+  min_price: 5.0
+
+screener:
+  # How many top-ranked ideas to include in the digest
+  top_n: 10
+
+news:
+  # Tickers watched by the news & sentiment monitor. Add your holdings and
+  # anything you're considering.
+  watchlist:
+    - AAPL
+    - MSFT
+    - NVDA
+    - GOOGL
+    - AMZN
+    - SPY
+    - QQQ
+  # Alert when |VADER compound sentiment| >= this threshold
+  sentiment_alert_threshold: 0.4
+
+portfolio:
+  # Holdings live in portfolio.csv (ticker, shares, cost_basis, buy_date).
+  benchmark: SPY
+  # Flag any single position above this share of the portfolio
+  max_position_pct: 25
+  # Flag positions down more than this % from cost basis for review
+  drawdown_review_pct: 20

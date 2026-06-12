@@ -1,0 +1,46 @@
+name: News & Sentiment Monitor
+
+on:
+  schedule:
+    # Every 2 hours, 13:00-23:00 UTC weekdays (covers the full US session)
+    - cron: "0 13-23/2 * * 1-5"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: assistant-state
+  cancel-in-progress: false
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      - name: Scan watchlist news
+        env:
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+        run: python run_news_monitor.py
+
+      - name: Commit state and alerts
+        run: |
+          git config user.name "investment-assistant[bot]"
+          git config user.email "actions@github.com"
+          git add state/ reports/ 2>/dev/null || true
+          if ! git diff --cached --quiet; then
+            git commit -m "News monitor state $(date -u '+%F %H:%M') [skip ci]"
+            git pull --rebase origin "${GITHUB_REF_NAME}" || true
+            git push origin "HEAD:${GITHUB_REF_NAME}"
+          fi

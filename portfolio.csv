@@ -1,0 +1,6 @@
+ticker,shares,cost_basis,buy_date
+# Replace these sample rows with your real Robinhood positions.
+# cost_basis is the per-share price you paid; buy_date is YYYY-MM-DD.
+SPY,5,520.00,2025-06-02
+AAPL,10,195.50,2025-08-15
+NVDA,8,118.20,2025-09-10
