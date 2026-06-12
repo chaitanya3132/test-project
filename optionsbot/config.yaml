@@ -1,0 +1,47 @@
+mode: paper          # "paper" or "live". Live additionally requires BOT_ALLOW_LIVE=yes in the env.
+
+broker:
+  # Options data feed on Alpaca's data API ("indicative" is free-tier)
+  options_feed: indicative
+
+risk:
+  max_risk_per_trade_pct: 1.5        # max % of account equity at risk per trade
+  max_daily_loss_pct: 5.0            # kill switch: flatten everything + halt for the day
+  defined_risk_only: true            # reject any structure with a naked short option
+  max_concurrent_positions: 5
+  max_exposure_per_underlying_pct: 3.0   # max total risk per underlying, % of equity
+  max_quote_staleness_seconds: 60    # circuit breaker: no trading on stale data
+
+strategy:
+  bull_put_spread:
+    underlying: SPY
+    dte_min: 25                # days-to-expiry window for entries
+    dte_max: 45
+    short_delta: 0.30          # target |delta| of the short put
+    width: 5.0                 # strike width in dollars
+    min_credit_frac: 0.25      # require credit >= 25% of width
+    profit_target_frac: 0.50   # close at 50% of max profit
+    stop_loss_credit_mult: 2.0 # close if loss reaches 2x credit received
+    regime_veto: bear          # skip new entries when research says this regime...
+    regime_confidence_min: 0.6 # ...with at least this confidence
+
+schedule:
+  timezone: America/New_York
+  premarket_time: "08:30"      # research + data ingest
+  trade_window_start: "10:00"  # avoid the open
+  trade_window_end: "15:30"    # avoid the close
+  cycle_minutes: 15            # intraday strategy cadence
+  eod_time: "16:15"
+
+research:
+  enabled: true
+  model: claude-fable-5        # requires ANTHROPIC_API_KEY in the environment
+  max_news_items: 40
+
+monitoring:
+  # Webhook URL comes from env MONITOR_WEBHOOK_URL (Slack-compatible JSON POST).
+  alert_min_level: info
+
+paths:
+  state_dir: state             # halt flag, day-start equity, research output, approvals log
+  db_path: data/market.db      # SQLite store for bars / chains / news
